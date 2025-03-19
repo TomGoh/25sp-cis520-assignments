@@ -1,0 +1,363 @@
+
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm,bbm}
+\usepackage{tikz,float}
+\usepackage[colorlinks=true]{hyperref}
+\DeclareMathOperator*{\E}{\mathbb{E}}
+\DeclareMathOperator*{\sgn}{\mathrm{sign}}
+\usepackage[ruled,noline]{algorithm2e}
+\newcommand{\handout}[5]{
+\noindent
+\begin{center}
+\framebox{
+\vbox{
+\hbox to 5.78in { {\bf CIS5200: Machine Learning } \hfill #2 }
+\vspace{4mm}
+\hbox to 5.78in { {\Large \hfill #5 \hfill} }
+\vspace{2mm}
+\hbox to 5.78in { {\em #3 \hfill #4} }
+}
+}
+\end{center}
+\vspace*{4mm}
+}
+\newcommand{\lecture}[4]{\handout{#1}{#2}{Release Date: #3}{Due Date: #4}{Homework
+#1}}
+\newtheorem{theorem}{Theorem}[subsection]
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{observation}[theorem]{Observation}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{property}[theorem]{Property}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{assumption}[theorem]{Assumption}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+\parindent 0in
+\parskip 1.5ex
+\begin{document}
+\lecture{2}{Spring 2025}{February 15, 2025}{February 28, 2025}
+\noindent
+\textbf{Name}: Haoze Wu \\
+\textbf{PennKey}: haozewu \\
+\textbf{Collaborators}: None
+
+\subsection*{\Large Problem 1: Gradient Descent}
+\paragraph{1.1}
+Answer:
+\newline
+To determine whether the unregularized objective $\hat{R}(w)$ is strongly convex or not, we need to calculate the Hessian matrix of $\hat{R}(w)$ is greater than or equal to $\mu I$ where $I$ is an identity matrix and $\mu>0$. For the second order derivative of the empirical risk function $\hat{R}(w)$, we may start with the first order derivative of it, which is:
+\begin{equation}
+    \begin{split}
+        \nabla_w\hat{R}(w) &= \frac{1}{m}\sum_{i=1}^m \frac{\partial \log({1+\exp{(-y_iw^\top x_i)}}) }{\partial w}\\
+        &= \frac{1}{m}\sum_{i=1}^m\frac{1}{1+\exp{(-y_iw^\top x_i)}}\cdot (-y_ix_i)\cdot(\exp{(-y_iw^\top x_i)}\\
+        &= \frac{1}{m}\sum_{i=1}^m(1-\frac{1}{1+\exp{(-y_iw^\top x_i)}})(-y_ix_i)
+    \end{split}
+\end{equation}
+Thus, we can calculate the second order derivative:
+\begin{equation}
+    \begin{split}
+        \nabla_w^2\hat{R}(w) &= \frac{\partial\frac{1}{m}\sum_{i=1}^m(1-\frac{1}{1+\exp{(-y_iw^\top x_i)}})(-y_ix_i) }{\partial w}\\
+        &= \frac{1}{m}\sum_{i=1}^m(-y_ix_i)\cdot(-\frac{1}{(1+\exp{(-y_iw^\top x_i)^2}})\cdot\exp{(-y_iw^\top x_i)}\cdot(-y_ix_i)\\
+        &=\frac{1}{m}\sum_{i=1}^mx_i^\top x_i(\frac{1}{(1+\exp{(-y_iw^\top x_i)}}-\frac{1}{(1+\exp{(-y_iw^\top x_i)^2}})
+    \end{split}
+\end{equation}
+, which is equivalent to $X^T M X$, where $M$ is a $m\times m$ dimension diagonal matrix where $M_{ii} = \frac{1}{(1+\exp{(-y_iw^\top x_i)}}-\frac{1}{(1+\exp{(-y_iw^\top x_i)^2}}$ for all $i$ from 0 to $m$.
+Consider the value of $M_{ii}$, which is assembled by a sigmoid function. The value range of any sigmoid function is $(0,1)$.
+
+Then, if $\hat{R}(x)$ here is a $\mu-$strongly convex function, we then must have:
+\begin{equation}
+    X^TMX\succeq \mu I
+\end{equation}
+, which also means that for any vector $v$, we have:
+\begin{equation}
+    v^TX^TMXv \succeq \mu ||v||^2_2
+\end{equation}
+, which is not true for those vectors $v^\prime$ in the null space of $X$ since $Xv^\prime =0$.
+Thus, the unregularized objective $\hat{R}(w)$ is not strongly convex.
+
+\paragraph{1.2}
+Answer:
+\newline
+Consider the Hessian matrix calculated in part 1.1, which is 
+\begin{equation}
+    X^TMX
+\end{equation}
+where $M$ is a $m\times m$ dimension diagonal matrix where $M_{ii} = \frac{1}{(1+\exp{(-y_iw^\top x_i)}}-\frac{1}{(1+\exp{(-y_iw^\top x_i)^2}}$ for all $i$ from 0 to $m$.
+Since each diagonal element of $M$ is assembled by sigmoid functions, whose value range is $(0,1)$, we can calculate the value range of $M_{ii}$ by:
+\begin{equation}
+    M_{ii} = \sigma(y_iw^\top x_i) - \sigma(y_iw^\top x_i)^2
+\end{equation}
+, where $\sigma$ is the sigmoid function. Since the value range of sigmoid function is $(0,1)$, we the value range of $M_{ii}$ is $(0,0.25]$.
+Thus, the smallest eigenvalue of $X^TMX$ is $0$ and the largest eigenvalue of $X^TMX$ is $0.25$ given that $||x_i||_2 \leq 1$ for all $i$ from 0 to $m$.
+Then, to prove that the Hessian matrix is L-smooth, we need to prove that the largest eigenvalue of $X^TMX$ is less than or equal to $L$. Since the largest possible value of $M_{ii}$ is $0.25$, we can calculate the largest eigenvalue of $X^TMX$ by:
+\begin{equation}
+    \lambda_{\max}(X^TMX) = \lambda_{\max}(X^TX)\cdot\lambda_{\max}(M)
+\end{equation}
+, where $\lambda_{\max}(X^TX)$ is the largest eigenvalue of $X^TX$ and $\lambda_{\max}(M)$ is the largest eigenvalue of $M$.
+Since $||x_i||_2 \leq 1$ for all $i$ from 0 to $m$, we have $\lambda_{\max}(X^TX) \leq 1$.
+Thus, the largest eigenvalue of $X^TMX$ is $0.25$, which is less than $1$, and thus the Hessian matrix is $1-$smooth.
+
+\paragraph{1.3}
+Answer:
+\newline
+Recall that the definition of a L-smooth function is given by:
+\begin{equation}
+    F(w^\prime)\leq F(w) + \nabla F(w)^\top(w^\prime-w) + \frac{L}{2}||w^\prime-w||_2^2
+\end{equation}
+Then, recall that the update rule of the gradient descent algoorithm is given by:
+\begin{equation}
+    w_{t+1} = w_{(t)} - \eta\nabla_w \hat{R}(w_{t})
+\end{equation}
+For the empirical risk function $\hat{R}(w)$, we have:
+\begin{equation}
+    \begin{split}
+        \hat{R}(w^\prime) &\leq \hat{R}(w) + \nabla \hat{R}(w)^\top(w^\prime-w) + \frac{L}{2}||w^\prime-w||_2^2\\
+        \hat{R}(w_{t+1}) &\leq \hat{R}(w_t) + \nabla \hat{R}(w_t)^\top(w_{t+1}-w_t) + \frac{L}{2}||w_{t+1}-w_t||_2^2\\
+        \hat{R}(w_{t+1}) &\leq \hat{R}(w_t) - \eta\nabla \hat{R}(w_t)^\top\nabla \hat{R}(w_t) + \frac{L}{2}||\eta\nabla \hat{R}(w_t)||_2^2\\
+        \hat{R}(w_{t+1}) &\leq \hat{R}(w_t) - \eta||\nabla \hat{R}(w_t)||_2^2 + \frac{L\eta^2}{2}||\nabla \hat{R}(w_t)||_2^2\\
+    \end{split}
+\end{equation}
+To satisfy the requirement such that the objective value of the objective function is non-increasing each iteration, we must have:
+\begin{equation}
+    \begin{split}
+        \hat{R}(w_{t+1}) &\leq \hat{R}(w_t)\\
+        \hat{R}(w_t) - \eta||\nabla \hat{R}(w_t)||_2^2 + \frac{L\eta^2}{2}||\nabla \hat{R}(w_t)||_2^2 &\leq \hat{R}(w_t)\\
+        - \eta||\nabla \hat{R}(w_t)||_2^2 + \frac{L\eta^2}{2}||\nabla \hat{R}(w_t)||_2^2 &\leq 0\\
+        \frac{L\eta^2}{2}||\nabla \hat{R}(w_t)||_2^2 &\leq \eta||\nabla \hat{R}(w_t)||_2^2\\
+        \frac{L\eta}{2} &\leq 1\\
+        \eta &\leq \frac{2}{L}
+    \end{split}
+\end{equation}
+Thus, the learning rate $\eta$ must be less than or equal to $\frac{2}{L}$ so that the objective value of the objective function is non-increasing each iteration.
+
+\paragraph{1.4}
+Answer:
+\newline
+To show the convergence rate of the gradient descent algorithm on this unregularized problem, we need to use the Theorem 7 fron the lecture notes that
+for a L-smooth function $F(w)$ with a global minimum $w^\star$, there is:
+\begin{equation}
+    F(w_{T+1})-F(w^\star) \leq \frac{L||w_1-w^\star||_2^2}{2 T}
+\end{equation}
+By using this theorem, we have:
+\begin{equation}
+    \hat{R}(w_{T+1})-\hat{R}(w^\star) \leq \frac{L||w_1-w^\star||_2^2}{2 T}
+\end{equation}
+If we initialize $w_1$ to be $0$, we have:
+\begin{equation}
+    \hat{R}(w_{T+1})-\hat{R}(w^\star) \leq \frac{L||w^\star||_2^2}{2 T}
+\end{equation}
+To ensure the requirement stated in the problem that 
+\begin{equation}
+    \hat{R}(w_{T+1})-\hat{R}(w^\star) \leq \epsilon
+\end{equation}
+, we must have:
+\begin{equation}
+    \begin{split}
+        \frac{L||w^\star||_2^2}{2 T} &\leq \epsilon \\
+        T &\geq \frac{L||w^\star||_2^2}{2\epsilon}
+    \end{split}
+\end{equation}
+If we scale the weight vector such that $||w^\star||_2 = 1$, we have:
+\begin{equation}
+    T \geq \frac{L}{2\epsilon}
+\end{equation}
+This implies that after $T=\frac{L}{2\epsilon}$ iterations, we get that $\hat{R}(w_{T+1})-\hat{R}(w^\star) \leq \epsilon$.
+Thus, the convergence rate of the gradient descent algorithm on this unregularized problem is $O(\frac{1}{T})$.
+\paragraph{1.5}
+Answer:
+\newline
+First, we shall calculate the second order derivative of the regularized objective function, which is equivalent to adding the second order derivative of the regularizer to the Hessian matrix of the unregularized function calculated in part 1.1.
+For the regularizer, we have:
+\begin{equation}
+    \begin{split}
+        \nabla_{w_i}t(w) &= \sum_{j=1}^d\frac{\partial\lambda_jw_j^2}{\partial w_i}\\
+        &= 2\lambda_iw_i
+    \end{split}
+\end{equation}
+For the second order derivative of the regularizer, we may write the element of its Hessian matrix as:
+\begin{equation}
+    H_{ij} = \frac{\partial^2\lambda_jw_j^2}{\partial w_i\partial w_j} = 2\lambda_j
+\end{equation}
+for any $i=j$ and $0$ otherwise.
+Then, the Hessian matrix of the regularized objective function is:
+\begin{equation}
+    \nabla_w^2(\hat{R}(w)+t(w)) = X^TMX + \text{diag}(2\lambda_1,2\lambda_2,...,2\lambda_d)
+\end{equation}
+From the Hessian matrix, we can tell that the eigenvalue of its is at least $\min_{j\in [d]} 2\lambda_j$, which means that the regularized objective function is $\min_{j\in [d]} 2\lambda_j-$strongly convex since 
+\begin{equation}
+    \nabla_w^2(\hat{R}(w)+t(w)) \succeq \min_{j\in [d]} 2\lambda_j I = \mu I
+\end{equation}
+Then, consider the L-smooth aspect. We have proved that If $g$ is $\alpha$-smooth, and $f$ is $\beta$-smooth then $f+g$ is $\alpha+\beta$-smooth during the third recitation.
+For the regularizer term, we have:
+\begin{equation}
+    \nabla_w^2t(w) = \text{diag}(2\lambda_1,2\lambda_2,...,2\lambda_d)
+\end{equation}
+, which means that the regularizer term is $2\max_{j\in [d]}\lambda_j-$smooth since
+\begin{equation}
+    \nabla_w^2t(w) \preceq 2\max_{j\in [d]}\lambda_j I = L I
+\end{equation}
+We have shown that the unregularized objective function is $1-$smooth in part 1.2. Thus, the regularized objective function is $1+2\max_{j\in [d]}\lambda_j-$smooth.
+
+\paragraph{1.6}
+Answer:
+\newline
+As proved before, the regularized objective function is $\min_{j\in [d]} 2\lambda_j-$strongly convex and $1+2\max_{j\in [d]}{\lambda_j}$-smooth. Then, we have:
+\begin{equation}
+    ||w_{T+1}-w_\star||_2^2 \leq (1-\frac{\mu}{L})^T||w_1-w_\star||^2_2
+\end{equation}
+To achieve the goal such that $||w_{T+1}-w_\star||_2 \leq \epsilon$, we then must have:
+\begin{equation}
+    \sqrt{(1-\frac{\mu}{L})^T}||w_1-w_\star||_2 \leq \epsilon
+\end{equation}
+We then have:
+\begin{equation}
+    \begin{split}
+        (1-\frac{\mu}{L})^T &\leq \frac{\epsilon^2}{||w_1-w_\star||_2^2}\\
+        \log{((1-\frac{\mu}{L})^T)} &\leq \log{(\frac{\epsilon^2}{||w_1-w_\star||_2^2})}\\
+        T\log{(1-\frac{\mu}{L})} &\leq 2\log{(
+        \frac{\epsilon}{||w_1-w_\star||_2})} \\ 
+        T &\leq \frac{2\log{(
+        \frac{\epsilon}{||w_1-w_\star||_2})}}{\log{(1-\frac{\mu}{L})}}
+    \end{split}
+\end{equation}
+Consider that $\mu=2\min_{j\in[d]}{\lambda_j}$ and $L=1+2\max_{j\in[d]}\lambda_j$, the value of $\frac{\mu}{L}$ is less than 1 and it can approach 0 if $\max_{j\in[d]}\lambda_j$ is large enough or $\min_{j\in[d]}\lambda_j$ is small enough, which leads to the approximation that
+\begin{equation}
+    \log{(1-\frac{\mu}{L}}) \approx -\frac{\mu}{L}
+\end{equation}
+Thus, with the approximation, we then have
+\begin{equation}
+    \begin{split}
+        T &\leq \frac{2\log{(
+        \frac{\epsilon}{||w_1-w_\star||_2})}}{\log{(1-\frac{\mu}{L})}} \\
+        T &\leq -2\frac{L}{\mu}\log{(\frac{\epsilon}{||w_1-w_\star||_2})}\\
+        T &\leq 2\frac{L}{\mu}\log{(\frac{||w_1-w_\star||_2}{\epsilon})}
+    \end{split}
+\end{equation}
+If we initialize at $w_1=0$ and $||w_\star||=1$, we than have:
+\begin{equation}
+    \begin{split}
+        T &\leq 2\frac{L}{\mu}\log{(\frac{1}{\epsilon})} \\ 
+        T &\leq 2\frac{1+2\max_{j\in[d]}\lambda_j}{2\min_{j\in[d]}{\lambda_j}}\log{(\frac{1}{\epsilon})}
+    \end{split}
+\end{equation}
+, which means the convergence rate is $O(\frac{L}{\mu}\log{(\frac{1}{\epsilon}}))$, i.e., $O(\frac{1+2\max_{j\in[d]}\lambda_j}{2\min_{j\in[d]}\lambda_j}\log{(\frac{1}{\epsilon}}))$.
+
+\paragraph{1.7}
+Answer:
+\newline
+From 1.6, we know that
+\begin{equation}
+    T \leq 2\frac{1+2\max_{j\in[d]}\lambda_j}{2\min_{j\in[d]}{\lambda_j}}\log{(\frac{1}{\epsilon})}
+\end{equation}
+When we choose $\lambda$ such that $\lambda_1 = \lambda_2= \cdots =\lambda_d=\lambda$ for some $\lambda>0$, we then have:
+\begin{equation}
+    \begin{split}
+        T&\leq 2\frac{1+2\lambda}{2\lambda}\log{(\frac{1}{\epsilon})} \\ 
+        T&\leq (2+\frac{1}{\lambda})\log{(\frac{1}{\epsilon})}
+    \end{split}
+\end{equation}
+Notice that part of the expression $\frac{1}{\lambda}$ is decreasing with the increment of $ \lambda$, which implies that the convergence time of the gradient descent algorithm would be faster for a larger $\lambda$.
+
+But this does not mean that a larger $\lambda$ would guarantee better performance since if the $\lambda$ is so large that it dominates the training process, the model would focus on training on the regularizer rather than the empirical risk.
+
+\subsection*{\Large Problem 2: MLE for Linear Regression}
+\paragraph{2.1}
+Answer:
+\newline
+Given that $\epsilon \sim \mathcal{N}(0, \sigma^2)$, for the expectation and variance of $y|x$, we have:
+\begin{equation}
+    \begin{split}
+        \mathbb{E}[y|x] &= \mathbb{E}[w^\top x+\epsilon]=w^\top x\\
+        \text{Var}[y|x]&=  \text{Var}[w^\top x+\epsilon] =\sigma^2
+    \end{split}
+\end{equation}
+, which indicates that $y|x\sim \mathcal{N}(w^\top x, \sigma^2)$. Thus, by the probability density function of the normal distribution, we have:
+\begin{equation}
+    p(y|x) = \frac{1}{\sqrt{2\pi}\sigma}\exp{(-\frac{(y-w^\top x)^2}{2\sigma^2})}
+\end{equation}
+
+\paragraph{2.2}
+Answer:
+\newline
+Given that 
+\begin{equation}
+    R(f) = \mathbb{E}_{x,y}[(y-f(x))^2]
+\end{equation}
+, we than have:
+\begin{equation}
+    \begin{split}
+         R(f) &= \mathbb{E}_{x,y}[(y-f(x))^2] \\
+         &= \mathbb{E}_{x,y}[(y-w^\top x)^2] \\
+         &= \mathbb{E}_{x,y}[(w^\top x+\epsilon-w^\top x)^2]\\
+         &= \mathbb{E}_{x,y}[\epsilon^2] \\
+         &= \text{Var}[\epsilon]-(\mathbb{E}[\epsilon])^2 \\
+         &= \sigma^2
+    \end{split}
+\end{equation}
+
+\paragraph{2.3}
+Answer:
+\newline
+To calculate the log conditional likelihood, we have:
+\begin{equation}
+    \begin{split}
+        \log{\hat{L}(w, \sigma)} &= \log{p(y_1, \cdots, y_m|x_1, \cdots, x_m)}\\
+        &= \log{\prod_{i=1}^m p(y_i|x_i)}\\
+        &= \sum_{i=1}^m\log{p(y_i|x_i)}\\
+        &= \sum_{i=1}^m\log{(\frac{1}{\sqrt{2\pi}\sigma}\exp{(-\frac{(y_i-w^\top x_i)^2}{2\sigma^2})})}\\
+        &= -m\log{(\sqrt{2\pi}\sigma)} -\frac{1}{2\sigma^2}\sum_{i=1}^m(y_i-w^\top x_i)^2
+    \end{split}
+\end{equation}
+
+\paragraph{2.4}
+Answer:
+\newline
+Calculate the first order derivative of $ \log{\hat{L}(w, \sigma)}$ with respect to $w$, we have:
+\begin{equation}
+    \begin{split}
+        \frac{\partial  \log{\hat{L}(w, \sigma)}}{\partial w}
+        &= \frac{\partial (-m\log{(\sqrt{2\pi}\sigma)} -\frac{1}{2\sigma^2}\sum_{i=1}^m(y_i-w^\top x_i)^2)}{\partial w}\\
+        &= -\frac{1}{2\sigma^2}\sum_{i=1}^m2(y_t-w^\top x_i)(-x_i)\\
+        &= \frac{1}{\sigma^2}\sum_{i=1}^m(y_t-w^\top x_i)(x_i)
+    \end{split}
+\end{equation}
+To maximize this log conditional likelihood, we need to calculate when its first order derivative is 0:
+\begin{equation}
+    \begin{split}
+        \frac{1}{\sigma^2}\sum_{i=1}^m(y_t-w^\top x_i)(x_i) &= 0\\
+        \sum_{i=1}^m(y_t-w^\top x_i)(x_i) &= 0\\
+        \sum_{i=1}^my_ix_i&=\sum_{i=1}^m x_i x_i^\top w
+    \end{split}
+\end{equation}
+By solving this equation can we get the optimal $w$ to maximize the log conditional likelihood.
+
+Then, for the empirical risk, we have:
+\begin{equation}
+    \hat{R}(w) = \frac{1}{m}\sum_{i=1}^m(y_i-w^\top x_i)^2
+\end{equation}
+whose first order derivative is:
+\begin{equation}
+    \begin{split}
+        \nabla_w\hat{R}(w) &= \frac{\partial  \frac{1}{m}\sum_{i=1}^m(y_i-w^\top x_i)^2}{\partial w} \\
+        &= \frac{1}{m}\sum_{i=1}^m2(y_i-w^\top x_i)(-x_i)
+    \end{split}
+\end{equation}
+To minimize $\hat{R}(w)$, we set its derivative to 0:
+\begin{equation}
+    \begin{split}
+        \frac{1}{m}\sum_{i=1}^m2(y_i-w^\top x_i)(-x_i) &= 0\\
+        \sum_{i=1}^m(y_i-w^\top x_i)(x_i) &= 0 \\
+        \sum_{i=1}^my_i x_i &= \sum_{i=1}^m x_i x_i^\top w
+    \end{split}
+\end{equation}
+, which is the same as the equation (38). The solution to minimize the empirical risk is the same as maximize the log conditional likelihood. Thus, maximizing the log conditional likelihood is equivalent to minimizing the empirical risk.
+\end{document}
