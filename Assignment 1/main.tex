@@ -1,0 +1,414 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm,bbm}
+\usepackage{tikz,float}
+\usepackage[colorlinks=true]{hyperref}
+\DeclareMathOperator*{\E}{\mathbb{E}}
+\DeclareMathOperator*{\sgn}{\mathrm{sign}}
+\usepackage[ruled,noline]{algorithm2e}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf CIS5200: Machine Learning } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{Release Date: #3}{Due Date: #4}{Homework #1}}
+
+\newtheorem{theorem}{Theorem}[subsection]
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{observation}[theorem]{Observation}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{property}[theorem]{Property}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{assumption}[theorem]{Assumption}
+
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+
+\begin{document}
+
+\lecture{1}{Spring 2025}{January 30, 2025}{February 14, 2025}
+
+\noindent
+\textbf{Name}: Haoze Wu \\
+\textbf{PennKey}: haozewu \\
+\textbf{Collaborators}: [List any collaborators here, AI and/or Human]
+
+\textit{Note: This document is a read-only file. To create an editable version click on Menu in the top left corner of your screen and choose the Copy Project option. }
+   
+\subsection*{\Large Problem 1: Margin Perceptron}
+
+\paragraph{1.1}
+Proof:
+\newline
+To prove 
+\begin{equation}
+  \omega_{\star}^\top\omega_{t+1} \geq \omega_{\star}^\top\omega_t + \gamma
+\end{equation}
+we can start by expanding the left-hand side following the Margin Perceptron algorithm:
+\begin{equation}
+  \begin{split}
+    \omega_{\star}^\top\omega_{t+1} &= \omega_{\star}^\top(\omega_t + y_i x_i) \\
+    &= \omega_{\star}^\top\omega_t + y_i\omega_{\star}^\top  x_i
+  \end{split}
+\end{equation}
+Since all data is linearly separated by the hyperplane defined by $\omega_{\star}$, we have $y_i(\omega_{\star}^\top x_i) > 0$. 
+And the lable $|y_i|=1$. So, we have
+\begin{equation}
+  \begin{split}
+    \omega_{\star}^\top\omega_{t+1} &= \omega_{\star}^\top\omega_t + y_i\omega_{\star}^\top  x_i \\
+    &= \omega_{\star}^\top\omega_t + \omega_{\star}^\top  x_i
+  \end{split}
+\end{equation}
+Given by the definition of the margin $\gamma$, where 
+\begin{equation}
+  \gamma = \min_{i\in\{1,\ldots,m\}} |\omega_{\star}^\top x_i|
+\end{equation}
+we than have
+\begin{equation}
+  \begin{split}
+    \omega_{\star}^\top\omega_{t+1} &= \omega_{\star}^\top\omega_t + \omega_{\star}^\top  x_i \\
+    &\geq \omega_{\star}^\top\omega_t + \gamma
+  \end{split}
+\end{equation}
+Proved.
+
+\paragraph{1.2}
+Proof:
+\newline
+To prove
+\begin{equation}
+  ||\omega_{t+1}||_2^2 \leq ||\omega_t||_2^2 + 3
+\end{equation}
+we may start with the left-hand side:
+\begin{equation}
+  \begin{split}
+    ||\omega_{t+1}||_2^2 &= ||\omega_t + y_i x_i||_2^2 \\
+    &= ||\omega_t||_2^2 + 2y_i\omega_t^\top x_i + ||y_i x_i||_2^2
+  \end{split}
+\end{equation}
+For the term $||y_i x_i||_2^2$, since $|y_i|=1$, we have
+\begin{equation}
+  ||y_i x_i||_2^2 = ||x_i||_2^2
+\end{equation}
+For the term $2y_i\omega_t^\top x_i$, we may consider the rule of update in the Margin Perceptron algorithm. 
+If $y_i \neq \sgn(\omega_t^\top x_i)$, we have
+\begin{equation}
+  2 y_i \omega_t^\top x_i \leq 0
+\end{equation}
+Thus, since all data sample have been processed under the Feature Scaling procedure, we have $||x_i||_2^2 \leq 1$, and thus,
+\begin{equation}
+  \begin{split}
+    ||\omega_{t+1}||_2^2 &= ||\omega_t||_2^2 + 2y_i\omega_t^\top x_i + ||y_i x_i||_2^2 \\
+    &\leq ||\omega_t||_2^2 + 1 \\
+    &\leq ||\omega_t||_2^2 + 3
+  \end{split}
+\end{equation}
+If the update is due to $|\omega_t^\top x_i| < 1$, we have
+\begin{equation}
+  |2 y_i \omega_t^\top x_i| \leq 2
+\end{equation}
+Thus, we have
+\begin{equation}
+  \begin{split}
+    ||\omega_{t+1}||_2^2 &= ||\omega_t||_2^2 + 2y_i\omega_t^\top x_i + ||y_i x_i||_2^2 \\
+    &\leq ||\omega_t||_2^2 + |2y_i\omega_t^\top x_i| + ||y_i x_i||_2^2 \\
+    &\leq ||\omega_t||_2^2 + 2 + 1 \\
+    &\leq ||\omega_t||_2^2 + 3
+  \end{split}
+\end{equation}
+Proved.
+
+\paragraph{1.3}
+Proof:
+\newline
+From the Growth Lemma proved in 1.1, we have:
+\begin{equation}
+  \begin{split}
+    \omega_{\star}^\top\omega_{T+1} &\geq \omega_{\star}^\top\omega_T + \gamma \\
+    \omega_{\star}^\top\omega_{T+1} &\geq \omega_{\star}^\top\omega_{T-1} + 2\gamma \\
+    \ldots \\
+    \omega_{\star}^\top\omega_{T+1} &\geq \omega_{\star}^\top\omega_1 + \gamma T
+  \end{split}
+\end{equation}
+Since the initilization of $\omega_1$ is $\mathbf{0}$, we have
+\begin{equation}
+  \begin{split}
+    \omega_{\star}^\top\omega_{T+1} &\geq \gamma T
+  \end{split}
+\end{equation}
+Also notice that
+\begin{equation}
+  \begin{split}
+    \omega_{\star}^\top\omega_{T+1} &\leq | \omega_{\star}^\top\omega_{T+1} | \\
+    &\leq ||\omega_{\star}||_2 ||\omega_{T+1}||_2 \\ 
+    &= ||\omega_{T+1}||_2
+  \end{split}
+\end{equation}
+Thus, we have
+\begin{equation}
+  ||\omega_{T+1}||_2 \geq \omega_{\star}^\top\omega_{T+1} \geq \gamma T
+\end{equation}
+From the Control Lemma proved in 1.2, we have:
+\begin{equation}
+  \begin{split}
+    ||\omega_{T+1}||_2^2 &\leq ||\omega_T||_2^2 + 3 \\
+    &\leq ||\omega_{T-1}||_2^2 + 6 \\
+    \ldots \\
+    &\leq ||\omega_1||_2^2 + 3T \\
+    &\leq 3T
+  \end{split}
+\end{equation}]
+which is equivalent to
+\begin{equation}
+  ||\omega_{T+1}||_2 \leq \sqrt{3T}
+\end{equation}
+Thus, combining the two inequalities, we have
+\begin{equation}
+  \gamma T \leq ||\omega_{T+1}||_2 \leq \sqrt{3T}
+\end{equation}
+Proved.
+
+\paragraph{1.4}
+Proof:
+\newline
+From the conclusion in 1.3, we have:
+\begin{equation}
+  \begin{split}
+    \gamma T &\leq \sqrt{3T}\\
+    \gamma^2 T^2 &\leq 3T\\
+    \gamma^2 T &\leq 3\\
+    T &\leq \frac{3}{\gamma^2}
+  \end{split}
+\end{equation}
+Proved.
+
+\paragraph{1.5}
+Proof:
+\newline
+Without losing generality, assume the Margin Perceptron algorithm ends after $T+1$ iterations, i.e.,
+the output hyperplane is defined by $\omega_T$.
+We need to prove that
+\begin{equation}
+  \min_{i} \frac{\omega_{T+1}^\top x_i}{||\omega_{T+1}||2} \geq \frac{\gamma}{3}
+\end{equation}
+From the conclusion in 1.3, we have
+\begin{equation}
+  \begin{split}
+    \min_{i} \frac{\omega_{T+1}^\top x_i}{||\omega_{T+1}||2} \geq \min_{i} \frac{\omega_{T+1}^\top x_i}{\sqrt{3T}}
+    = \frac{1}{\sqrt{3T}} \min_{i} \omega_{T+1}^\top x_i
+  \end{split}
+\end{equation}
+And from the conclusion from 1.4, we have:
+\begin{equation}
+  \frac{1}{\sqrt{3T}} \min_{i} \omega_{T+1}^\top x_i \geq \frac{\gamma}{3} \min_{i} \omega_{T+1}^\top x_i
+\end{equation}
+To prove the statement given, we need to prove 
+\begin{equation}
+  \min_{i} \omega_{T+1}^\top x_i \geq 1
+\end{equation}
+From the update rule of the Margin Perceptron algorithm, when the algorithm ends and output the final result $\omega_{T+1}$,
+we must have
+\begin{equation}
+  |\omega_{T+1}^\top x_i| \geq 1
+\end{equation}
+for all $i \in \{1, \ldots, m\}$. Thus, we have
+\begin{equation}
+  \min_{i} \omega_{T+1}^\top x_i \geq 1
+\end{equation}
+which is equivalent to
+\begin{equation}
+  \min_{i} \frac{\omega_{T+1}^\top x_i}{||\omega_{T+1}||2} \geq \frac{\gamma}{3}
+\end{equation}
+Proved.
+
+\paragraph{1.6}
+Answer:
+\newline
+This Margin Perceptron algorithm is desirable to learn a predictor that has a large margin is because 
+it treats those correctly classified samples with a margin less than 1 as misclassified samples, and then 
+try to update the hyperplane to make the margin, i.e., the distance from the data point to the hyperplane, larger.
+
+\subsection*{\Large Problem 2: Bayes Optimal Classifier and Squared Loss}
+
+\paragraph{2.1}
+Proof: 
+\newline
+We may first expand the expression of the expected squared loss:
+\begin{equation}
+    \mathbb{E}_{y|x}[(h(x)-y)^2] = \mathbb{E}_{y|x}[(h(x)^2 - 2h(x)y + y^2)] \\
+\end{equation}
+When the partial derivative of the expected squared loss with respect to $h(x)$ is zero, we have
+\begin{equation}
+    \frac{\partial \mathbb{E}_{y|x}[(h(x)-y)^2]}{\partial h(x)} = 0
+\end{equation}
+which leads to 
+\begin{equation}
+    \begin{split}
+        \frac{\partial \mathbb{E}_{y|x}[(h(x)-y)^2]}{\partial h(x)} &= \frac{\partial \mathbb{E}_{y|x}[(h(x)^2 - 2h(x)y + y^2)]}{\partial h(x)} \\
+        &= 2h(x) - 2\mathbb{E}_{y|x}[y] = 0
+    \end{split}
+\end{equation}
+Thus, we have
+\begin{equation}
+    h^\star(x) = \mathbb{E}_{y|x}[y]
+\end{equation}
+For $\mathbb{E}_{y|x}[y]$, we have
+\begin{equation}
+  \begin{split}
+    \mathbb{E}_{y|x}[y] &= 1 \cdot P(y=1|x) + (-1) \cdot P(y=-1|x) \\
+    &= P[y=1|x] + (-1) \cdot (1 - P[y=1|x]) \\
+    &= 2P[y=1|x] - 1 \\
+    &= 2\eta(x)-1
+  \end{split}
+\end{equation}
+Proved.
+
+\paragraph{2.2}
+Proof:
+\newline
+From Baye's Theorem, we have:
+\begin{equation}
+  \begin{split}
+    \eta(x) &= \Pr[y=1|x] \\
+    &= \frac{\Pr[x|y=1]\Pr[y=1]}{\Pr[x]}
+  \end{split}
+\end{equation}
+And for the term $\Pr[x]$, by using the law of total probability, we have:
+\begin{equation}
+  \begin{split}
+    \Pr[x] &= \Pr[x|y=1] \Pr[y=1] + \Pr[x|y=-1]\Pr[y=-1] \\
+    &= \frac{1}{2} \Pr[x|y=1] + \frac{1}{2} \Pr[x|y=-1]
+  \end{split}
+\end{equation}
+Thus, we have:
+\begin{equation}
+  \begin{split}
+    \eta(x) &= \frac{\Pr[x|y=1]\Pr[y=1]}{\Pr[x]} \\
+    &= \frac{\Pr[x|y=1]\Pr[y=1]}{\frac{1}{2}\Pr[x|y=1] + \frac{1}{2}\Pr[x|y=-1]} \\
+    &= \frac{\frac{1}{2}\mathcal{N}(\mu, I)}{\frac{1}{2}\mathcal{{N}(\mu,I)}  + \frac{1}{2}\mathcal{N}(-\mu, I)}
+  \end{split}
+\end{equation}
+Consider the Probability Density Function of the Guassian Distribution is
+\begin{equation}
+  \mathcal{N}(\mu, I) = \frac{1}{\sqrt{2\pi}}\exp(-\frac{1}{2}(x-\mu)^2)
+\end{equation}
+, and substitute the PDF into the equation, we have
+\begin{equation}
+  \begin{split}
+    \eta(x) &= \frac{\frac{1}{2}\mathcal{N}(\mu, I)}{\frac{1}{2}\mathcal{{N}(\mu,I)}  + \frac{1}{2}\mathcal{N}(-\mu, I)} \\
+    &= \frac{\frac{1}{2}\frac{1}{\sqrt{2\pi}}\exp(-\frac{1}{2}(x-\mu)^2)}{\frac{1}{2}\frac{1}{\sqrt{2\pi}}\exp(-\frac{1}{2}(x-\mu)^2)  + \frac{1}{2}\frac{1}{\sqrt{2\pi}}\exp(-\frac{1}{2}(x+\mu)^2)} \\
+    &= \frac{\exp(-\frac{1}{2}(x-\mu)^2)}{\exp(-\frac{1}{2}(x-\mu)^2)  + \exp(-\frac{1}{2}(x+\mu)^2)} \\
+    &= \frac{1}{1 + \exp(-2\mu^\top x)}
+  \end{split}
+\end{equation}
+Proved.
+
+\paragraph{2.3}
+Answer:
+\newline
+Combining the expression of $\eta(x)$ in 2.1 and 2.2, we have
+\begin{equation}
+ h^\star(x) = 2\eta(x) - 1 = \frac{2}{1 + \exp(-2\mu^\top x)} - 1
+\end{equation}
+and if $h^\star(x) = 0$, we have
+\begin{equation}
+  \begin{split}
+    \frac{2}{1 + \exp(-2\mu^\top x)} - 1 &= 0 \\
+    \exp(-2\mu^\top x) &= 1 \\
+    -2\mu^\top x &= 0 \\
+    \mu^\top x &= 0
+  \end{split}
+\end{equation}
+, which means the decision boundary is defined by the hyperplane $\mu^\top x = 0$,
+indicating that $\omega = \mu$ and $b = 0$ for this case.
+When $\mu^\top x \geq 0$, this model would predict that $y = 1$, and when $\mu^\top x < 0$, this model would predict that $y = -1$.
+\subsection*{\Large Problem 3: k-NN Analysis}
+
+\paragraph{3.1}
+Proof:
+\newline
+Without losing generality, assume the difference between the $k$th coodinate of $x$ and 
+$x^\prime$ is $\epsilon$, i.e., $x_k - x_k^\prime =  \epsilon$.
+From the triangle inequality, we have
+\begin{equation}
+  \text{dist}(x, z) - \text{dist}(x^\prime, z) \leq \text{dist}(x, x^\prime)
+\end{equation}
+For the distance between $x$ and $x^\prime$, we have
+\begin{equation}
+  \begin{split}
+    \text{dist}(x, x^\prime) &= \sqrt{\sum_{i=1}^{d} (x_i - x_i^\prime)^2} \\
+    &= \sqrt{\sum_{i=1}^{k-1} (x_i - x_i^\prime)^2 + (x_k - x_k^\prime)^2 + \sum_{i=k+1}^{d} (x_i - x_i^\prime)^2} \\
+    &= \sqrt{(x_k - x_k^\prime)^2} \\
+    &= \epsilon
+  \end{split}
+\end{equation}
+Thus, we have
+\begin{equation}
+  \text{dist}(x, z) - \text{dist}(x^\prime, z) \leq \epsilon
+\end{equation}
+Proved.
+
+This conclusion also suggests that the k-NN classifier is quite robust to small perturbations in the test point data.
+When using suitable distance measurement, the k-NN classifier can still yield the correct prediction even if the test point data is slightly perturbed.
+
+\paragraph{3.2}
+Proof:
+\newline
+From the conclusion in 3.1, we have
+\begin{equation}
+  \text{dist}(y, x) - \text{dist}(y^\prime, x) \leq \epsilon
+\end{equation}
+if there is a difference of $\epsilon$ in any one coordinate of $y$ and $y^\prime$ out of the total $d$ coordinates where $x$ is the test point and $y$ and $y^\prime$ are the nearest and second nearest traning points.
+If we perturb each coordinate of $x$ by at most $\epsilon = \frac{\Delta}{2d}$, where $\Delta = \text{dist}(y, x) - \text{dist}(y^\prime, x)$, denoting the newly perturbed test point as $x^\prime$, we then have:
+\begin{equation}
+  \begin{split}
+    |\text{dist}(x^\prime, u) - \text{dist}(x, u)| &\leq d\cdot\frac{\Delta}{2d} = \frac{\Delta}{2} \\
+    -\frac{\Delta}{2} \leq \text{dist}(x^\prime, u) - \text{dist}(x, u) &\leq \frac{\Delta}{2} \\
+    \text{dist}(x, u) - \frac{\Delta}{2} \leq \text{dist}(x^\prime, u) &\leq \text{dist}(x, u) + \frac{\Delta}{2}
+  \end{split}
+\end{equation}
+for any training point $u$. Thus, for both the nearest neighbor $y$ and second nearest neighbor $y^\prime$, we have:
+\begin{equation}
+  \begin{split}
+    \text{dist}(x^\prime, y) &\leq \text{dist}(x, y) + \frac{\Delta}{2} \\
+    \text{dist}(x^\prime, y^\prime) &\geq \text{dist}(x, y^\prime) - \frac{\Delta}{2}
+  \end{split}
+\end{equation}
+Thus, we then consider the difference between the distance between the nearest neighbor $y$ and the test point $x^\prime$ and the distance between the second nearest neighbor $y^\prime$ and the test point $x^\prime$:
+\begin{equation}
+  \begin{split}
+    \text{dist}(x^\prime, y^\prime) - \text{dist}(x^\prime, y) &\geq (\text{dist}(x, y^\prime) - \frac{\Delta}{2}) - (\text{dist}(x, y) + \frac{\Delta}{2}) \\
+    &= \text{dist}(x, y^\prime) - \text{dist}(x, y) - \Delta \\
+    &= \Delta - \Delta \\
+    &= 0
+  \end{split}
+\end{equation}
+Since the difference in distances remains non-negative, the distance between the test point $x^\prime$ and the nearest neighbor $y$ is still less than or equal to the distance between the test point $x^\prime$ and the second nearest neighbor $y^\prime$,
+which means the nearest training point and the prediction of this 1-NN classifier remains unchanged after the perturbation on the test point $x$.
+
+Proved.
+
+\end{document} 
