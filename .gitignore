@@ -308,3 +308,11 @@ TSWLatexianTemp*
 #*Notes.bib
 .DS_Store
 *.DS_Store
+*.yaml
+*/.DS_Store
+*/.vscode
+.vscode
+.vscode/*
+*/*.yaml
+*.yaml
+*.yml
