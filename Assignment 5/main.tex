@@ -45,28 +45,231 @@
 \begin{document}
 \lecture{5}{Spring 2025}{April 15, 2025}{April 29, 2025}
 \noindent
-\textbf{Name}: [Your Name] \\
-\textbf{PennKey}: [Your PennKey] \\
-\textbf{Collaborators}: [List any collaborators here, AI and/or Human]
+\textbf{Name}: Haoze Wu \\
+\textbf{PennKey}: haozewu \\
+\textbf{Collaborators}: None
 \subsection*{\Large Problem 1: $k$-means Clustering}
 \paragraph{1.1}
-[Add solution here]
+Answer:
+\newline
+For the first term:
+\begin{equation}
+  Z(C_1, \cdots, C_k) = \sum_{i=1}^k \frac{1}{2|C_l|}\sum_{i, j \in C_l} \|x_i - x_j\|_2^2
+\end{equation}
+, we can expand the 2-norm into:
+\begin{equation}
+  \|x_i - x_j\|_2^2 = \|x_i - \mu_l + \mu_l - x_j\|_2^2 = \|x_i - \mu_l\|_2^2 + \|x_j - \mu_l\|_2^2 + 2(x_i - \mu_l)^T(\mu_l - x_j)
+\end{equation}
+And by intergating it into the summation, we have:
+\begin{equation}
+  \begin{split}
+    \sum_{i, j\in C_l} \|x_i - x_j\|_2^2  &= \sum_{i, j\in C_l} \|x_i - \mu_l\|_2^2 + \sum_{i, j\in C_l} \|x_j - \mu_l\|_2^2 + 2\sum_{i, j\in C_l} (x_i - \mu_l)^T(\mu_l - x_j)
+  \end{split}
+\end{equation}
+For the last termin in equation (3), we have:
+\begin{equation}
+  \sum_{i, j\in C_l} (x_i - \mu_l)^T(\mu_l - x_j) = \sum_{i\in C_l} (x_i - \mu_l)^T\sum_{j\in C_l}(\mu_l - x_j) 
+\end{equation}
+, and notice that $\mu_l = \frac{1}{|C_l|}\sum_{j\in C_l} x_j$, for $\sum_{i\in C_l}(x_i - \mu_l)$, we then have:
+\begin{equation}
+  \sum_{i\in C_l} (x_i - \mu_l) = \sum_{i\in C_l} x_i - |C_l|\mu_l = \sum_{i\in C_l} x_i - \sum_{j\in C_l} x_j = 0
+\end{equation}
+, and it is similar to anothe term $\sum_{j\in C_l}(\mu_l - x_j)$, so we have:
+\begin{equation}
+  \sum_{i, j\in C_l} (x_i - \mu_l)^T(\mu_l - x_j) = 0
+\end{equation}
+Thus, for the first equation given in this problem, we have:
+\begin{equation}
+  \begin{split}
+    Z(C_1, \cdots, C_k) &= \sum_{i=1}^k \frac{1}{2|C_l|} \sum_{i,j \in C_l} \|x_i - x_j\|_2^2 \\
+    &= \sum_{i=1}^k\frac{1}{2|C_l|} \sum_{i,j \in C_l} (\|x_i - \mu_l\|_2^2 + \|\mu_l - x_j\|_2^2) \\ 
+    &= \sum_{i=1}^k \frac{1}{2|C_l|} (|C_l|\sum_{i \in C_l}\|x_i - \mu_l\|_2^2 + |C_l|\sum_{j \in C_l}\|\mu_l - x_j\|_2^2) \\ 
+    &= \sum_{i=1}^k \frac{1}{2} (2\sum_{i \in C_l}\|x_i - \mu_l\|_2^2) \\
+    &= \sum_{i=1}^k\sum_{i \in C_l}\|x_i - \mu_l\|_2^2
+  \end{split}
+\end{equation}
+, which is equivalent to the second equation given in this problem.
+
+Proved.
+
 \paragraph{1.2}
-[Add solution here]
+Answer:
+\newline
+Given the definition of goodness of clustering as
+\begin{equation}
+  Z(C, z) = \sum_{i\in C} \|x_i - z\|_2^2
+\end{equation}
+to find the optimal center of the cluster $C$, we can take the derivative of $Z(C, z)$ with respect to $z$ and set it to 0:
+\begin{equation}
+  \frac{\partial Z(C, z)}{\partial z} = \frac{\partial}{\partial z} \sum_{i\in C} \|x_i - z\|_2^2 = \sum_{i\in C} 2(x_i - z) = 0
+\end{equation}
+, and we can get:
+\begin{equation}
+  \sum_{i\in C} x_i - |C|z = 0
+\end{equation}
+, thus we have:
+\begin{equation}
+  z = \frac{1}{|C|}\sum_{i\in C} x_i = \mu
+\end{equation}
+, which is the average of all the points in the cluster $C$.
+Thus, the optimal center of the cluster $C$ is the average of all the points in the cluster $C$, which is equivalent to 
+\begin{equation}
+  Z(C, \mu) = \min_{z} Z(C, z)
+\end{equation}
+Proved.
+
 \paragraph{1.3}
-[Add solution here]
+Answer:
+\newline
+Given that the center is of the cluster $z$ is uniformly sampled from the points from the cluster $C$, the probability of the center $z$ to be $x_i$ for any $x_i \in C$ is $\frac{1}{|C|}$. Thus, for the point distribution $\rho$, we can have:
+\begin{equation}
+  E_{z \sim \rho}[Z(C,z)] = E_{z \sim \rho}[\sum_{i\in C} \|x_i - z\|_2^2] = \sum_{i\in C} E_{z \sim \rho}[\|x_i - z\|_2^2]
+\end{equation}
+For any point $x_i \in C$, we can have:
+\begin{equation}
+E_{z \sim \rho}[\|x_i - z\|_2^2] = \sum_{j\in C} \frac{1}{|C|}\|x_i - x_j\|_2^2
+\end{equation}
+Thus, we then have:
+\begin{equation}
+  E_{z \sim \rho}[Z(C,z)] = \sum_{i\in C} \sum_{j\in C} \frac{1}{|C|}\|x_i - x_j\|_2^2 
+\end{equation}
+And, from the conclusion of problem 1.1, we have:
+\begin{equation}
+  E_{z \sim \rho}[Z(C,z)]  = \sum_{i\in C} \sum_{j\in C} \frac{1}{|C|}\|x_i - x_j\|_2^2 = 2\sum_{i=1}^k \frac{1}{2|C_l|}\sum_{i,j \in C_l} \|x_i - x_j\|_2^2 = 2Z(C, \mu)
+\end{equation}
+Proved.
+
 \paragraph{1.4}
-[Add solution here]
-\paragraph{1.5 (Optional) }
-[Add solution here]
+When using the EM algorithm to solve the Gaussian Mixture Model, we can separate it into the expectation stage and the maximiation stage.
+
+For the expectation stage, i.e., the soft cluster assignment, we can use the contribution of the $j$-th cluster to the total probability of $x_i$ as the soft assignment of $x_i$ to the $j$-th cluster:
+\begin{equation}
+  z_{ij} = \frac{\pi_l \mathcal{N}(x_i|\mu_l, \Sigma_l)}{\sum_{j=1}^k \pi_j \mathcal{N}(x_i|\mu_j, \Sigma_j)}
+\end{equation}
+The parameter $\theta$ can then be written as $\theta = \{\pi_l, \mu_1, \cdots, \mu_k, \Sigma_1, \cdots, \Sigma_k\}$, and the soft assignment $z_{ij}$ can be written as $z_{ij} = P(z_i = j|x_i, \theta)$.
+Then, for the maximiation stage, we can use the soft assignment $z_{ij}$ to update the parameters $\theta$, and from GMM, we have:
+\begin{equation}
+  \begin{split}
+    \mu_l &= \frac{\sum_{i=1}^m z_{il} x_i}{\sum_{i=1}^m z_{il}} \\
+    \Sigma_l &= \frac{\sum_{i=1}^m z_{il} (x_i - \mu_l)(x_i - \mu_l)^T}{\sum_{i=1}^m z_{il}} \\
+    \pi_l &= \frac{\sum_{i=1}^m z_{il}}{m}
+  \end{split}
+\end{equation}
+When we set $\Sigma_l = \sigma^2I$ for all $l \in [k]$, the Gaussian density becomes:
+\begin{equation}
+  \mathcal{N}(x_i|\mu_l, \sigma^2I) = \frac{1}{(2\pi\sigma^2)^{d/2}} \exp(-\frac{|x_i - \mu_l|_2^2}{2\sigma^2})
+\end{equation}
+Then, substituting this into the expectation stage, we have:
+\begin{equation}
+  \begin{split}
+    z_{il} &= \frac{\pi_l \frac{1}{(2\pi\sigma^2)^{d/2}} \exp(-\frac{|x_i - \mu_l|2^2}{2\sigma^2})}{\sum{j=1}^k \pi_j \frac{1}{(2\pi\sigma^2)^{d/2}} \exp(-\frac{|x_i - \mu_j|_2^2}{2\sigma^2})} \\ 
+  &= \frac{\pi_l \exp(-\frac{|x_i - \mu_l|2^2}{2\sigma^2})}{\sum{j=1}^k \pi_j \exp(-\frac{|x_i - \mu_j|_2^2}{2\sigma^2})}
+  \end{split}
+\end{equation}
+Now, as $\sigma \to 0$, the exponential terms dominate. For any data point $x_i$, let $l^* = \arg\min_j |x_i - \mu_j|_2^2$ be the index of the closest centroid.
+Here, for $\forall j \neq l^*$, we have:
+\begin{equation}
+  |x_i - \mu_j|_2^2 > |x_i - \mu_{l^*}|_2^2
+\end{equation} 
+And thus, we have:
+\begin{equation}
+  \lim_{\sigma \to 0} z_{il} = \begin{cases}
+    1 & l = l^* \\
+    0 & l \neq l^*
+  \end{cases}
+\end{equation}
+, which is the hard assignment of points to clusters, and it is equivalent to the assignment of k-means where each point is assigned to its nearest centroid.
+
+Proved.
 
 \subsection*{\Large Problem 2: PCA}
 \paragraph{2.1}
-[Add solution here]
+Answer:
+\newline
+We may first use the eigenvalue decomposition of the covariance matrix $\Sigma$:
+\begin{equation}
+  \Sigma = U \Lambda U^T
+\end{equation}
+Also, notice that the maximum variance expression given in the problem can be written as:
+\begin{equation}
+  \begin{split}
+    \max_{u:\| u\|_2=1, u^\top u_1 = 0} \frac{1}{m-1} \sum_{i=1}^m (x_i^\top u)^2 = \max_{u:\| u\|_2=1, u^\top u_1 = 0} u^\top S u
+  \end{split}
+\end{equation}
+for the second principal component $u_2$ since it is orthogonal to the first principal component $u_1$.
+And writing the unit vector $u$ into a linear combination of all the eigenvectors of the covariance matrix $\Sigma$:
+\begin{equation}
+  u = \sum_{i=1}^m \alpha_i u_i
+\end{equation}
+where $\sum_{i=1}^m \alpha_i^2 = 1$.
+Then, we can have:
+\begin{equation}
+  \begin{split}
+    u^\top S u &= \sum_{i=1}^m \sum_{j=1}^m \alpha_i \alpha_j u_i^\top S u_j \\
+    &= \sum_{i=1}^m \sum_{j=1}^m \alpha_i \alpha_j u_i^\top (U\Lambda U^T) u_j
+  \end{split}
+\end{equation} 
+since all the eigenvectors $u_i$ are orthogonal to each other, we can have:
+\begin{equation}
+  u_i^\top U\Lambda U^T u_j = \lambda_i u_i^\top u_j
+\end{equation}
+, and thus we can have:
+\begin{equation}
+  \begin{split}
+    u^\top S u &= \sum_{i=1}^m \sum_{j=1}^m \alpha_i \alpha_j \lambda_i u_i^\top u_j \\
+    &= \sum_{i=1}^m \alpha_i^2 \lambda_i
+  \end{split}
+\end{equation}
+Since we have $u^\top u_1 = 0$, which implies that $\alpha_1=0$, when we set $\alpha_2 = 1$ and all other $\alpha_i = 0$ for $i=3, 4, \cdots, m$, we can have:
+\begin{equation}
+  u^\top S u = \lambda_2
+\end{equation}
+, which yields the maximum variance of the second principal component $u_2$.
+
+Proved.
+
 \paragraph{2.2}
-[Add solution here]
+Answer:
+\newline
+For the argmin term, we can have:
+\begin{equation}
+  \|x_i-(u^\top x_i)u\|_2^2 = \|x_i\|_2^2 - 2(u^\top x_i)(u^\top x_i) + (u^\top x_i)^2 \|u\|^2_2
+\end{equation}
+And since we have the constraint $\|u\|_2^2 = 1$, we can have:
+\begin{equation}
+  \|x_i-(u^\top x_i)u\|_2^2 = \|x_i\|_2^2 - (u^\top x_i)^2
+\end{equation}
+Thus, by summing over all the points $x_i$, we can have:
+\begin{equation}
+  \sum_{i=1}^m \|x_i-(u^\top x_i)u\|_2^2 = \sum_{i=1}^m \|x_i\|_2^2 - \sum_{i=1}^m (u^\top x_i)^2
+\end{equation}
+When we try to minimize this term, we can see that the first term $\sum_{i=1}^m \|x_i\|_2^2$ is a constant and does not depend on $u$, thus we can ignore it and only need to minimize the second term $\sum_{i=1}^m (u^\top x_i)^2$, which is equivalent to minimize the variance of the projection of the data points $x_i$ onto the direction $u$ since the only difference is the constant term $\sum_{i=1}^m \|x_i\|_2^2$ and the coefficient $1/m$ and $1/(m-1)$.
+That is to say, minimizing the first term is equivalent to maximizing the second term.
+
+Proved.
 \paragraph{2.3}
-[Add solution here]
+Answer:
+\newline
+For the term of the left hand side of the equation to be proved, we have:
+\begin{equation}
+  \|Ux_i\|_2^2 = (Ux_i)^\top[Ux_i] = x_i^\top U^\top U x_i
+\end{equation}
+And for the term of the right hand side of the equation to be proved, we have:
+\begin{equation}
+  \begin{split}
+    \|x_i - U^\top U x_i\|_2^2 &= (x_i - U^\top U x_i)^\top[x_i - U^\top U x_i] \\
+    &= x_i^\top x_i - 2x_i^\top U^\top U x_i + (U^\top U x_i)^\top[U^\top U x_i] \\
+    &= x_i^\top x_i - 2x_i^\top U^\top U x_i + x_i^\top U^\top U U^\top U x_i \\
+    &= x_i^\top x_i - 2x_i^\top U^\top U x_i + x_i^\top U^\top U x_i \\
+    &= x_i^\top x_i - x_i^\top U^\top U x_i 
+  \end{split}
+\end{equation}
+Then, we can make a summation over all the points $x_i$:
+\begin{equation}
+  \sum_{i=1}^m \|x_i - U^\top U x_i\|_2^2 = \sum_{i=1}^m x_i^\top x_i - \sum_{i=1}^m x_i^\top U^\top U x_i
+\end{equation}
+since the argmax and argmin are taken over $U$, rather than $x$, thus we can treat $\sum_{i=1}^m x_i^\top x_i$ as a constant and ignore it, and the remaining term in both sides of the equation is equivalent: the left hand side of the equation is maximizing the term $\sum_{i=1}^m x_i^\top U^\top U x_i$, and the right hand side is minimizing the term$-\sum_{i=1}^m x_i^\top U^\top U x_i$.
+Thus, maximizing the variance is equivalent to minimize the reconstruction error.
 
-
+Proved.
 \end{document}
