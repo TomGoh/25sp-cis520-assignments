@@ -316,3 +316,7 @@ TSWLatexianTemp*
 */*.yaml
 *.yaml
 *.yml
+
+Assignment 5/data
+Assignment 5/data/*
+Assignment 5/shoulder+implant+x+ray+manufacturer+classification.zip
